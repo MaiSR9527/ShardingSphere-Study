@@ -1,0 +1,84 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: Sharding-Jdbc-demo
+  shardingsphere:
+    datasource:
+      #配置数据源的名称
+      names: ds1,ds2
+      #配置每个数据源
+#      ds1:
+#        type: com.alibaba.druid.pool.DruidDataSource
+#        driver-class-name: com.mysql.cj.jdbc.Driver
+#        url: jdbc:mysql://localhost:3306/test?serverTimezone=GMT%2B8
+#        username: root
+#        password: mai1208142397
+#      ds2:
+#        type: com.alibaba.druid.pool.DruidDataSource
+#        driver-class-name: com.mysql.cj.jdbc.Driver
+#        url: jdbc:mysql://localhost:3306/test2?serverTimezone=GMT%2B8
+#        username: root
+#        password: mai1208142397
+      #垂直分库的数据源
+      ds1:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/production_db?serverTimezone=GMT%2B8
+        username: root
+        password: mai1208142397
+      ds2:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/order_db?serverTimezone=GMT%2B8
+        username: root
+        password: mai1208142397
+
+    sharding:
+      #表的分布情况
+      tables:
+#        course: # course表
+#          actual-data-nodes: ds$->{1..2}.course_$->{1..2} #表达式，ds0，ds1中的course_1和course_2
+#          key-generator:
+#            column: course_id #主键生成的例
+#            type: SNOWFLAKE #使用雪花算法生成主键
+#          #数据表分片策略：course_id为偶数时添加进course1中，奇数添加进course2中
+#          table-strategy:
+#            inline:
+#              sharding-column: course_id
+#              algorithm-expression: course_$->{course_id % 2+1}
+#          #数据库分片策略
+#          database-strategy:
+#            inline:
+#              sharding-column: user_id
+#              algorithm-expression: ds$->{user_id % 2+1}
+        #专库
+        production:
+          actual-data-nodes: ds1.t_production
+          key-generator:
+            column: pid #主键生成的例
+            type: SNOWFLAKE #使用雪花算法生成主键
+          table-strategy:
+            inline:
+              sharding-column: pid
+              algorithm-expression: t_production
+
+        order:
+          actual-data-nodes: ds2.t_order
+          key-generator:
+            column: order_id #主键生成的例
+            type: SNOWFLAKE #使用雪花算法生成主键
+          table-strategy:
+            inline:
+              sharding-column: order_id
+              algorithm-expression: t_order
+
+    props:
+      sql:
+        show: true
+  main:
+    allow-bean-definition-overriding: true
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  mapper-locations: classpath:/mapper/*.xml
